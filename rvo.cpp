@@ -50,6 +50,33 @@ Foo return_arg(Foo f){
     return f;
 }
 
+Foo rvo_chain3(){
+    return Foo();
+}
+
+Foo rvo_chain2(){
+    return rvo_chain3();
+}
+
+Foo rvo_chain1(){
+    return rvo_chain2();
+}
+
+Foo nrvo_chain2(){
+    Foo f = rvo_chain1();
+    f.i = 3;
+    std::cout << "side-effects:" << f.i << "\n";
+    return f;
+}
+
+Foo nrvo_chain1(){
+    Foo f = nrvo_chain2();
+    f.i = 5;
+    std::cout << "side-effects:" << f.i << "\n";
+    return f;
+}
+
+
 // see https://godbolt.org/z/oMGxjT
 
 int main(){
@@ -64,6 +91,12 @@ int main(){
 
     std::cout << "\nbranch-nrvo: \n";
     Foo f3 = branch_nrvo(); // no copy elision! move instead
+
+    std::cout << "\nrvo-chains: \n";
+    Foo ff = rvo_chain1();
+
+    std::cout << "\nnrvo-chains: \n";
+    Foo ff1 = nrvo_chain1();
 
     std::cout << "\nrvo-nrvo-chain: \n";
     Foo f4 = rvo_and_nrvo_chain(); // copy elision
